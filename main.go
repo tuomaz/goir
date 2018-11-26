@@ -132,7 +132,7 @@ func initGraphics() {
 		logger.Fatalf("Failed to create renderer: %v\n", err)
 	}
 
-	if font, err = ttf.OpenFont("fonts/Signika-Regular.ttf", 150); err != nil {
+	if font, err = ttf.OpenFont("fonts/Signika-Regular.ttf", 140); err != nil {
 		logger.Fatalf("Failed to open font: %v\n", err)
 	}
 
