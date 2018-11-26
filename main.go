@@ -43,7 +43,6 @@ func run() {
 	var clockTexture *sdl.Texture
 
 	for runFlag {
-		logger.Infof("1")
 		for event = sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 			switch t := event.(type) {
 			case *sdl.KeyboardEvent:
@@ -53,12 +52,11 @@ func run() {
 		}
 		var err error
 		t := time.Now()
-		logger.Infof("ts=%v", t.Format("15:04:05"))
 
-		if clock, err = font.RenderUTF8Blended("TEST", sdl.Color{R: 255, G: 255, B: 200, A: 200}); err != nil {
+		if clock, err = font.RenderUTF8Blended(t.Format("15:04:05"), sdl.Color{R: 255, G: 255, B: 200, A: 200}); err != nil {
 			logger.Fatalf("Failed to render text: %s\n", err)
 		}
-		logger.Infof("2")
+
 		if clockTexture, err = renderer.CreateTextureFromSurface(clock); err != nil {
 			logger.Fatalf("Failed to create texture from surface: %s\n", err)
 		}
@@ -94,7 +92,6 @@ func run() {
 			// Show the pixels for a while
 			window.UpdateSurface()
 		*/
-		logger.Infof("3")
 	}
 }
 
@@ -106,7 +103,7 @@ func initGraphics() {
 		logger.Fatal("Failed to initialize TTF: %s\n", err)
 	}
 
-	if window, err = sdl.CreateWindow(name, sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, winWidth, winHeight, sdl.WINDOW_RESIZABLE); err != nil {
+	if window, err = sdl.CreateWindow(name, sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, winWidth, winHeight, sdl.WINDOW_FULLSCREEN_DESKTOP); err != nil {
 		logger.Fatalf("Failed to create window: %s\n", err)
 	}
 
