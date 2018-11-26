@@ -85,7 +85,7 @@ func run() {
 			H: clock2.H,
 			W: clock2.W,
 			X: 25,
-			Y: 170,
+			Y: 180,
 		}
 
 		renderer.Clear()
@@ -132,7 +132,7 @@ func initGraphics() {
 		logger.Fatalf("Failed to create renderer: %v\n", err)
 	}
 
-	if font, err = ttf.OpenFont("fonts/Signika-Regular.ttf", 140); err != nil {
+	if font, err = ttf.OpenFont("fonts/Signika-Regular.ttf", 150); err != nil {
 		logger.Fatalf("Failed to open font: %v\n", err)
 	}
 
@@ -141,5 +141,5 @@ func initGraphics() {
 }
 
 func format(t time.Time) string {
-	return fmt.Sprintf("%s %02d %s %d", days[t.Weekday()], t.Day(), months[t.Month()-1], t.Year())
+	return fmt.Sprintf("%s %02d %s %d", days[t.Weekday()-1], t.Day(), months[t.Month()-1], t.Year())
 }
