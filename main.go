@@ -53,7 +53,7 @@ func run() {
 		var err error
 		t := time.Now()
 
-		if clock, err = font.RenderUTF8Blended(t.Format("15:04:05"), sdl.Color{R: 255, G: 255, B: 200, A: 200}); err != nil {
+		if clock, err = font.RenderUTF8Blended(t.Format("Monday 02 January 15.04"), sdl.Color{R: 255, G: 255, B: 200, A: 200}); err != nil {
 			logger.Fatalf("Failed to render text: %s\n", err)
 		}
 
