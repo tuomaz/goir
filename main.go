@@ -18,7 +18,7 @@ var (
 	font                *ttf.Font
 	winWidth, winHeight int32 = 1920, 1080
 	days                      = [...]string{"Måndag", "Tisdag", "Onsdag", "Torsdag", "Fredag", "Lördag", "Söndag"}
-	months                    = [...]string{"Januari", "Februari", "Mars", "April", "Maj", "Juni", "Juli", "Augusti", "September", "Oktober", "November", "December"}
+	months                    = [...]string{"januari", "februari", "mars", "april", "maj", "juni", "juli", "augusti", "september", "oktober", "november", "december"}
 )
 
 func init() {
@@ -84,8 +84,8 @@ func run() {
 		r4 := &sdl.Rect{
 			H: clock2.H,
 			W: clock2.W,
-			X: 150,
-			Y: 25,
+			X: 25,
+			Y: 150,
 		}
 
 		renderer.Clear()
