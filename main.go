@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/veandco/go-sdl2/sdl"
@@ -16,6 +17,8 @@ var (
 	renderer            *sdl.Renderer
 	font                *ttf.Font
 	winWidth, winHeight int32 = 1920, 1080
+	days                      = [...]string{"Måndag", "Tisdag", "Onsdag", "Torsdag", "Fredag", "Lördag", "Söndag"}
+	months                    = [...]string{"Januari", "Februari", "Mars", "April", "Maj", "Juni", "Juli", "Augusti", "September", "Oktober", "November", "December"}
 )
 
 func init() {
@@ -41,6 +44,8 @@ func run() {
 	//var solid *sdl.Surface
 	var clock *sdl.Surface
 	var clockTexture *sdl.Texture
+	var clock2 *sdl.Surface
+	var clockTexture2 *sdl.Texture
 
 	for runFlag {
 		for event = sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
@@ -53,7 +58,11 @@ func run() {
 		var err error
 		t := time.Now()
 
-		if clock, err = font.RenderUTF8Blended(t.Format("Monday 02 January 15.04"), sdl.Color{R: 255, G: 255, B: 200, A: 200}); err != nil {
+		if clock, err = font.RenderUTF8Blended(format(t), sdl.Color{R: 255, G: 255, B: 200, A: 200}); err != nil {
+			logger.Fatalf("Failed to render text: %s\n", err)
+		}
+
+		if clock2, err = font.RenderUTF8Blended(t.Format(" 15.04"), sdl.Color{R: 255, G: 255, B: 200, A: 200}); err != nil {
 			logger.Fatalf("Failed to render text: %s\n", err)
 		}
 
@@ -61,15 +70,27 @@ func run() {
 			logger.Fatalf("Failed to create texture from surface: %s\n", err)
 		}
 
+		if clockTexture2, err = renderer.CreateTextureFromSurface(clock2); err != nil {
+			logger.Fatalf("Failed to create texture from surface: %s\n", err)
+		}
+
 		r3 := &sdl.Rect{
 			H: clock.H,
 			W: clock.W,
-			X: 100,
-			Y: 100,
+			X: 25,
+			Y: 25,
+		}
+
+		r4 := &sdl.Rect{
+			H: clock2.H,
+			W: clock2.W,
+			X: 150,
+			Y: 25,
 		}
 
 		renderer.Clear()
 		renderer.Copy(clockTexture, nil, r3)
+		renderer.Copy(clockTexture2, nil, r4)
 		renderer.Present()
 		clock.Free()
 		clockTexture.Destroy()
@@ -111,10 +132,14 @@ func initGraphics() {
 		logger.Fatalf("Failed to create renderer: %v\n", err)
 	}
 
-	if font, err = ttf.OpenFont("fonts/Signika-Regular.ttf", 144); err != nil {
+	if font, err = ttf.OpenFont("fonts/Signika-Regular.ttf", 120); err != nil {
 		logger.Fatalf("Failed to open font: %v\n", err)
 	}
 
 	sdl.ShowCursor(sdl.DISABLE)
 
+}
+
+func format(t time.Time) string {
+	return fmt.Sprintf("%s %02d. %s %d", days[t.Weekday()], t.Day(), months[t.Month()-1], t.Year())
 }
