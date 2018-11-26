@@ -94,7 +94,7 @@ func run() {
 		renderer.Present()
 		clock.Free()
 		clockTexture.Destroy()
-		sdl.Delay(100)
+		sdl.Delay(5000)
 
 		/*
 			if solid, err = font.RenderUTF8Solid("TEST", sdl.Color{255, 0, 0, 255}); err != nil {
