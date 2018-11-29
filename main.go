@@ -19,6 +19,7 @@ var (
 	winWidth, winHeight int32 = 1920, 1080
 	days                      = [...]string{"Måndag", "Tisdag", "Onsdag", "Torsdag", "Fredag", "Lördag", "Söndag"}
 	months                    = [...]string{"januari", "februari", "mars", "april", "maj", "juni", "juli", "augusti", "september", "oktober", "november", "december"}
+	temperatureOut            = "0"
 )
 
 func init() {
@@ -29,12 +30,15 @@ func init() {
 
 func main() {
 	logger.Infof("Starting goir...")
+	_ = createAndStartMQTT("localhost:1883", "shiprock", "hass")
+
 	initGraphics()
 	items := createItems()
 	run(items)
 
 	renderer.Destroy()
 	window.Destroy()
+
 }
 
 func run(items []item) {
@@ -48,7 +52,9 @@ func run(items []item) {
 			switch t := event.(type) {
 			case *sdl.KeyboardEvent:
 				logger.Infof("key = %v", t.Keysym)
-				runFlag = false
+				if t.Keysym.Scancode == 41 {
+					runFlag = false
+				}
 			}
 		}
 
@@ -73,7 +79,9 @@ func run(items []item) {
 			texture.Destroy()
 		}
 
-		sdl.Delay(5000)
+		sdl.Delay(500)
+		surfacesToFree = nil
+		texturesToDestroy = nil
 	}
 }
 
@@ -115,6 +123,10 @@ func getTime() string {
 	return t.Format("15.04")
 }
 
+func getTempOut() string {
+	return temperatureOut
+}
+
 func getColor() sdl.Color {
 	return sdl.Color{R: 255, G: 255, B: 200, A: 200}
 }
@@ -136,6 +148,14 @@ func createItems() []item {
 		y:     180,
 	}
 	items = append(items, timeItem)
+
+	tempItem := &textItem{
+		color: getColor,
+		text:  getTempOut,
+		x:     25,
+		y:     360,
+	}
+	items = append(items, tempItem)
 
 	return items
 }

@@ -29,52 +29,63 @@ type eventState struct {
 }
 
 func createAndStartMQTT(serverAddress, clientID, topic string) *client.Client {
+	// Create an MQTT Client.
 	cli := client.New(&client.Options{
+		// Define the processing of the error handler.
 		ErrorHandler: func(err error) {
 			fmt.Println(err)
 		},
 	})
 
-	logger.Infof("1")
+	// Terminate the Client.
+	defer cli.Terminate()
 
+	// Connect to the MQTT Server.
 	err := cli.Connect(&client.ConnectOptions{
 		Network:  "tcp",
-		Address:  serverAddress,
-		ClientID: []byte(clientID),
+		Address:  "localhost:1883",
+		ClientID: []byte("example-client"),
 	})
 	if err != nil {
 		panic(err)
 	}
 
-	logger.Infof("3")
+	// Subscribe to topics.
 	err = cli.Subscribe(&client.SubscribeOptions{
 		SubReqs: []*client.SubReq{
 			&client.SubReq{
-				TopicFilter: []byte(topic),
+				TopicFilter: []byte("hass"),
 				QoS:         mqtt.QoS0,
-				Handler:     messageHandler,
+				// Define the processing of the message handler.
+				Handler: messageHandler,
 			},
 		},
 	})
 	if err != nil {
 		panic(err)
 	}
-	logger.Infof("3")
+
 	return cli
 }
 
 func messageHandler(topicName, message []byte) {
+	fmt.Println(string(topicName), string(message))
+
 	had := &homeAssistantData{}
 	err := json.Unmarshal(message, had)
 	if err != nil {
 		logger.Error("Could not unmarshall data from HomeAssistant: %v", err)
 		return
 	}
-	logger.Debug("data = %v", had)
+	logger.Infof("type = %s", had.EventType)
 	//had.EventData.EntityID name
 	/*valueFloat, ok := had.EventData.NewState.Attributes["Temperature"].(float64)
 	if !ok {
 		logger.Error("Could not parse float", zap.Any("value", had.EventData.NewState.Attributes["Temperature"]))
 		return
 	}*/
+
+	if had != nil && had.EventData.NewState.EntityID == "sensor.ute_tvistevagen_temperature" {
+		temperatureOut = had.EventData.NewState.State
+	}
 }
