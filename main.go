@@ -30,22 +30,18 @@ func init() {
 func main() {
 	logger.Infof("Starting goir...")
 	initGraphics()
-
-	run()
+	items := createItems()
+	run(items)
 
 	renderer.Destroy()
 	window.Destroy()
 }
 
-func run() {
+func run(items []item) {
 	var runFlag = true
 	var event sdl.Event
-	//var surface *sdl.Surface
-	//var solid *sdl.Surface
-	var clock *sdl.Surface
-	var clockTexture *sdl.Texture
-	var clock2 *sdl.Surface
-	var clockTexture2 *sdl.Texture
+	surfacesToFree := make([]*sdl.Surface, 0)
+	texturesToDestroy := make([]*sdl.Texture, 0)
 
 	for runFlag {
 		for event = sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
@@ -55,64 +51,29 @@ func run() {
 				runFlag = false
 			}
 		}
-		var err error
-		t := time.Now()
-
-		if clock, err = font.RenderUTF8Blended(format(t), sdl.Color{R: 255, G: 255, B: 200, A: 200}); err != nil {
-			logger.Fatalf("Failed to render text: %s\n", err)
-		}
-
-		if clock2, err = font.RenderUTF8Blended(t.Format(" 15.04"), sdl.Color{R: 255, G: 255, B: 200, A: 200}); err != nil {
-			logger.Fatalf("Failed to render text: %s\n", err)
-		}
-
-		if clockTexture, err = renderer.CreateTextureFromSurface(clock); err != nil {
-			logger.Fatalf("Failed to create texture from surface: %s\n", err)
-		}
-
-		if clockTexture2, err = renderer.CreateTextureFromSurface(clock2); err != nil {
-			logger.Fatalf("Failed to create texture from surface: %s\n", err)
-		}
-
-		r3 := &sdl.Rect{
-			H: clock.H,
-			W: clock.W,
-			X: 25,
-			Y: 25,
-		}
-
-		r4 := &sdl.Rect{
-			H: clock2.H,
-			W: clock2.W,
-			X: 25,
-			Y: 180,
-		}
 
 		renderer.Clear()
-		renderer.Copy(clockTexture, nil, r3)
-		renderer.Copy(clockTexture2, nil, r4)
+		for _, item := range items {
+			surface, rect, err := item.getSurfaceAndRect()
+			if err != nil {
+				logger.Error(err)
+			}
+			texture, err := renderer.CreateTextureFromSurface(surface)
+			renderer.Copy(texture, nil, rect)
+			surfacesToFree = append(surfacesToFree, surface)
+			texturesToDestroy = append(texturesToDestroy, texture)
+
+		}
 		renderer.Present()
-		clock.Free()
-		clockTexture.Destroy()
+
+		for _, surface := range surfacesToFree {
+			surface.Free()
+		}
+		for _, texture := range texturesToDestroy {
+			texture.Destroy()
+		}
+
 		sdl.Delay(5000)
-
-		/*
-			if solid, err = font.RenderUTF8Solid("TEST", sdl.Color{255, 0, 0, 255}); err != nil {
-				fmt.Fprintf(os.Stderr, "Failed to render text: %s\n", err)
-			}
-			defer solid.Free()
-
-			if surface, err = window.GetSurface(); err != nil {
-				fmt.Fprintf(os.Stderr, "Failed to get window surface: %s\n", err)
-			}
-
-			if err = solid.Blit(nil, surface, nil); err != nil {
-				fmt.Fprintf(os.Stderr, "Failed to put text on window surface: %s\n", err)
-			}
-
-			// Show the pixels for a while
-			window.UpdateSurface()
-		*/
 	}
 }
 
@@ -142,4 +103,39 @@ func initGraphics() {
 
 func format(t time.Time) string {
 	return fmt.Sprintf("%s %02d %s %d", days[t.Weekday()-1], t.Day(), months[t.Month()-1], t.Year())
+}
+
+func getFullDate() string {
+	t := time.Now()
+	return format(t)
+}
+
+func getTime() string {
+	t := time.Now()
+	return t.Format("15.04")
+}
+
+func getColor() sdl.Color {
+	return sdl.Color{R: 255, G: 255, B: 200, A: 200}
+}
+
+func createItems() []item {
+	items := make([]item, 0)
+	dateItem := &textItem{
+		color: getColor,
+		text:  getFullDate,
+		x:     25,
+		y:     25,
+	}
+	items = append(items, dateItem)
+
+	timeItem := &textItem{
+		color: getColor,
+		text:  getTime,
+		x:     25,
+		y:     180,
+	}
+	items = append(items, timeItem)
+
+	return items
 }
