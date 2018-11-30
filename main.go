@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/veandco/go-sdl2/sdl"
@@ -30,7 +31,7 @@ func init() {
 
 func main() {
 	logger.Infof("Starting goir...")
-	_ = createAndStartMQTT("localhost:1883", "shiprock", "hass")
+	_ = createAndStartMQTT("192.168.1.3:1883", "shiprock", "hass")
 
 	initGraphics()
 	items := createItems()
@@ -131,6 +132,12 @@ func getColor() sdl.Color {
 	return sdl.Color{R: 255, G: 255, B: 200, A: 200}
 }
 
+func getMixedColor() sdl.Color {
+	c1 := sdl.Color{R: 255, G: 0, B: 0, A: 0}
+	c2 := sdl.Color{R: 0, G: 0, B: 255, A: 0}
+	return blendColor(c1, c2, 0.5)
+}
+
 func createItems() []item {
 	items := make([]item, 0)
 	dateItem := &textItem{
@@ -150,7 +157,7 @@ func createItems() []item {
 	items = append(items, timeItem)
 
 	tempItem := &textItem{
-		color: getColor,
+		color: getMixedColor,
 		text:  getTempOut,
 		x:     25,
 		y:     360,
@@ -158,4 +165,50 @@ func createItems() []item {
 	items = append(items, tempItem)
 
 	return items
+}
+
+type color struct {
+	R, G, B float64
+}
+
+// https://stackoverflow.com/questions/22607043/color-gradient-algorithm, Mark Ransom
+func blendColor(c1, c2 sdl.Color, frac float64) sdl.Color {
+	gamma := 0.43
+	c1Lin := color{R: fromsRGB(c1.R), G: fromsRGB(c1.G), B: fromsRGB(c1.B)}
+	c2Lin := color{R: fromsRGB(c2.R), G: fromsRGB(c2.G), B: fromsRGB(c2.B)}
+	c1Brightness := math.Pow(float64(c1Lin.R+c1Lin.G+c1Lin.B), gamma)
+	c2Brightness := math.Pow(float64(c2Lin.R+c2Lin.G+c2Lin.B), gamma)
+	intensity := lerp(c1Brightness, c2Brightness, frac)
+	rc := color{R: lerp(c1Lin.R, c2Lin.R, frac), G: lerp(c1Lin.R, c2Lin.R, frac), B: lerp(c1Lin.R, c2Lin.R, frac)}
+	sum := rc.R + rc.G + rc.B
+	rc2 := color{R: rc.R * intensity / sum, G: rc.G * intensity / sum, B: rc.B * intensity / sum}
+	ret := sdl.Color{R: tosRGB(rc2.R), G: tosRGB(rc2.G), B: tosRGB(rc2.B), A: 0}
+	return ret
+
+}
+
+func tosRGBf(x float64) float64 {
+	if x <= 0.0031308 {
+		return 12.92 * x
+	}
+	return (1.055*(math.Pow(x, (1/2.4))) - 0.055)
+}
+
+func tosRGB(x float64) uint8 {
+	return uint8(255.9999 * tosRGBf(x))
+}
+
+func fromsRGB(x uint8) float64 {
+	var y float64
+	xfloat := float64(x) / 255.0
+	if xfloat <= 0.04045 {
+		y = xfloat / 12.92
+	} else {
+		y = math.Pow(((xfloat + 0.055) / 1.055), 2.4)
+	}
+	return y
+}
+
+func lerp(a, b float64, frac float64) float64 {
+	return a*(1-frac) + b*frac
 }
