@@ -125,7 +125,7 @@ func getTime() string {
 }
 
 func getTempOut() string {
-	return temperatureOut
+	return temperatureOut + "°"
 }
 
 func getColor() sdl.Color {
