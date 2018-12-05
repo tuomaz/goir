@@ -10,15 +10,21 @@ type item interface {
 }
 
 type textItem struct {
-	text  stringFunc
-	color colorFunc
-	x     int32
-	y     int32
+	text    stringFunc
+	color   colorFunc
+	bgcolor colorFunc
+	x       int32
+	y       int32
 }
 
 func (ti textItem) getSurfaceAndRect() (*sdl.Surface, *sdl.Rect, error) {
-	surface, err := font.RenderUTF8Blended(ti.text(), ti.color())
-
+	var surface *sdl.Surface
+	var err error
+	if ti.bgcolor == nil {
+		surface, err = font.RenderUTF8Blended(ti.text(), ti.color())
+	} else {
+		surface, err = font.RenderUTF8Shaded(ti.text(), ti.color(), ti.bgcolor())
+	}
 	rect := &sdl.Rect{
 		H: surface.H,
 		W: surface.W,

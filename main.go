@@ -157,10 +157,11 @@ func createItems() []item {
 	items = append(items, timeItem)
 
 	tempItem := &textItem{
-		color: getMixedColor,
-		text:  getTempOut,
-		x:     25,
-		y:     360,
+		color:   getColor,
+		bgcolor: getMixedColor,
+		text:    getTempOut,
+		x:       25,
+		y:       360,
 	}
 	items = append(items, tempItem)
 
